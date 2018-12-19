@@ -202,20 +202,79 @@ export default {
         return false
       }
       if (file) {
-        this.filetoDataURL(file, (url) => {
-          this.clipImg = url
-          this.dataURLtoImage(url, (image) => {
-            this.image = image
-            let size = this.resizeSizeImg(image, this.screenWidth, this.screenHeight)
-            extend(this.imgSize, size)
-            this.$nextTick(() => {
-              this.imgScaleVal = (this.imgSize.s * 100).toFixed(0) // 默认图片缩放百分比
-              this.toClipPopup(image)
-            })
-          })
-        })
-        this.showPopup = true
+        this.fileToPreviewImage(file)
       }
+    },
+    /*
+    * 生成预览图片，截图框
+    * @param: [file] [上传图片]
+    */
+    fileToPreviewImage (file) {
+      this.filetoDataURL(file, (dataUrl) => { // 转换成base64
+        this.isRotate(dataUrl)
+          .then(url => {
+            this.clipImg = url
+            this.dataURLtoImage(url)
+              .then(image => { // 图片转换成image对象， 显示预览图片弹出层
+                this.image = image
+                let size = this.resizeSizeImg(image, this.screenWidth, this.screenHeight) // 计算图片尺寸、缩放
+                extend(this.imgSize, size)
+                this.$nextTick(() => {
+                  this.imgScaleVal = (this.imgSize.s * 100).toFixed(0) // 默认图片缩放百分比
+                  this.toClipPopup(image)
+                  this.showPopup = true
+                })
+              })
+          })
+      })
+    },
+    /* 
+    * 根据exif信息，判断图片是否需要旋转，旋转图片
+    * @param: [dataUrl] [图片的base64地址]
+    */
+    isRotate (dataUrl) {
+      return new Promise(reslove => {
+        let orientation = this.getOrientation(dataUrl) || 1 // 获取图片exif旋转角度
+        if (orientation && orientation !== 1) { // 1:旋转0°，3:旋转180°，6:顺时针90°，8:逆时针90°
+          this.dataURLtoImage(dataUrl)
+            .then(image => {
+              let canvas = document.createElement('canvas')
+              let ctx = canvas.getContext('2d')
+              let x = 0
+              let y = 0
+              ctx.save()
+              switch(orientation) {
+                case 3:
+                  canvas.width = image.width
+                  canvas.height = image.height
+                  ctx.rotate(Math.PI)
+                  x = -image.width
+                  y = -image.height
+                  break
+                case 6:
+                  canvas.width = image.height
+                  canvas.height = image.width
+                  ctx.rotate(90 * Math.PI / 180)
+                  y = -image.height
+                  break
+                case 8:
+                  canvas.width = image.height
+                  canvas.height = image.width
+                  ctx.rotate(-90 * Math.PI / 180)
+                  x = -image.width
+                  break
+                default:
+                  canvas.width = image.width
+                  canvas.height = image.height
+              }
+              ctx.drawImage(image, x, y)
+              ctx.restore()
+              reslove(this.canvasResizetoDataURL(canvas))
+            })
+        } else {
+          reslove(dataUrl)
+        }
+      })
     },
     /*
     * 将File类型文件转变为dataURL字符串
@@ -232,14 +291,15 @@ export default {
     /*
     * 将一串dataURL转变为Image类型文件
     * @param: [dataUrl] [dataURL字符串]
-    * @param: [fn] [回调函数，包含一个Image类型文件]
     */
-    dataURLtoImage (dataUrl, fn) {
-      let img = new Image()
-      img.onload = () => {
-        fn(img)
-      }
-      img.src = dataUrl
+    dataURLtoImage (dataUrl) {
+      return new Promise(resolve => {
+        let img = new Image()
+        img.onload = () => {
+          resolve(img)
+        }
+        img.src = dataUrl
+      })
     },
     /*
     * 将Canvas类型对象转换成Blob类型对象
@@ -257,6 +317,94 @@ export default {
     */
     canvasResizetoDataURL (canvas) {
       return canvas.toDataURL(`image/${this.outputType}`, this.outputSize)
+    },
+    /* 获取图片exif要将图片转换成ArrayBuffer对象， base64转换ArrayBuffer对象 */
+    base64ToArrayBuffer (dataUrl) {
+      dataUrl = dataUrl.replace(/^data\:([^\;]+)\;base64,/gmi, '')
+      let binary = atob(dataUrl)
+      let len = binary.length
+      let buffer = new ArrayBuffer(len)
+      let view = new Uint8Array(buffer)
+      for (let i = 0; i < len; i++) {
+        view[i] = binary.charCodeAt(i)
+      }
+      return buffer
+    },
+    /*
+    * Unicode码转字符串
+    * ArrayBuffer对象，Unicode码转字符串
+    */
+    getStringFromCharCode (dataView, start, length) {
+      let str = ''
+      let i
+      for (i = start, length += start; i < length; i++) {
+        str += String.fromCharCode(dataView.getUint8(i))
+      }
+      return str
+    },
+    /*
+    * 获取jpg图片的exif角度（在ios体现最明显）
+    * @param: [dataUrl] [图片的base64地址]
+    */
+    getOrientation (dataUrl) {
+      let arrayBuffer = this.base64ToArrayBuffer(dataUrl)
+      let dataView = new DataView(arrayBuffer)
+      let length = dataView.byteLength
+      let orientation
+      let exifIDCode
+      let tiffOffest
+      let firstIFDOffest
+      let littleEndian
+      let endianness
+      let app1Start
+      let ifdStart
+      let offset
+      let i
+      // Only handle JPEG image (start by 0xFFD8)
+      if (dataView.getUint8(0) === 0xFF && dataView.getUint8(1) === 0xD8) {
+        offset = 2
+        while (offset < length) {
+          if (dataView.getUint8(offset) === 0xFF && dataView.getUint8(offset + 1) === 0xE1) {
+            app1Start = offset
+            break
+          }
+          offset++
+        }
+      }
+      if (app1Start) {
+        exifIDCode = app1Start + 4
+        tiffOffest = app1Start + 10
+        if (this.getStringFromCharCode(dataView, exifIDCode, 4) === 'Exif') {
+          endianness = dataView.getUint16(tiffOffest)
+          littleEndian = endianness === 0x4949
+          if (littleEndian || endianness === 0x4d4d /* bigEndian */) {
+            if (dataView.getUint16(tiffOffest + 2, littleEndian) === 0x002A) {
+              firstIFDOffest = dataView.getUint32(tiffOffest + 4, littleEndian)
+              if (firstIFDOffest >= 0x00000008) {
+                ifdStart = tiffOffest + firstIFDOffest
+              }
+            }
+          }
+        }
+      }
+      if (ifdStart) {
+        length = dataView.getUint16(ifdStart, littleEndian)
+        for (i = 0; i < length; i++) {
+          offset = ifdStart + i * 12 + 2
+          if (dataView.getUint16(offset, littleEndian) === 0x0112 /* Orientation */) {
+            // 8 is the offset of the current tag's value
+            offset += 8
+            // Get the original orientation value
+            orientation = dataView.getUint16(offset, littleEndian)
+            // Override the orientation with its default value for Safari (#120)
+            // if (IS_SAFARI_OR_UIWEBVIEW) {
+            //   dataView.setUint16(offset, 1, littleEndian)
+            // }
+            break
+          }
+        }
+      }
+      return orientation
     },
     /* 取消上传图片 */
     cancel () {
@@ -300,11 +448,13 @@ export default {
     * @param: [maxHeight] [最大高度]
     */
     resizeSizeImg (img, maxWidth, maxHeight) {
+      let width = img.width
+      let height = img.height
       let imgInfo = {
-        x: (maxWidth - img.width) / 2,
-        y: (maxHeight - img.height) / 2,
-        w: img.width,
-        h: img.height,
+        x: (maxWidth - width) / 2,
+        y: (maxHeight - height) / 2,
+        w: width,
+        h: height,
         s: 1
       }
       if (imgInfo.w < maxWidth && imgInfo.h < maxHeight) {
@@ -312,18 +462,18 @@ export default {
       }
       let scale = parseFloat(imgInfo.w / imgInfo.h) // 计算宽高比
       let sizeByMw = { // 按照宽等比计算高
-        x: (maxWidth - img.width) / 2,
-        y: (maxHeight - img.height) / 2,
+        x: (maxWidth - width) / 2,
+        y: (maxHeight - height) / 2,
         w: maxWidth,
         h: parseInt(maxWidth / scale),
-        s: maxWidth / img.width
+        s: maxWidth / width
       }
       let sizeByMh = { // 按照高等比计算宽
-        x: (maxWidth - img.width) / 2,
-        y: (maxHeight - img.height) / 2,
+        x: (maxWidth - width) / 2,
+        y: (maxHeight - height) / 2,
         w: parseInt(maxHeight * scale),
         h: maxHeight,
-        s: maxHeight / img.height
+        s: maxHeight / height
       }
       if (sizeByMw.h <= maxHeight) {
         return sizeByMw
@@ -336,7 +486,7 @@ export default {
         y: 0,
         w: maxWidth,
         h: maxHeight,
-        s: maxWidth / img.width
+        s: maxWidth / width
       }
     },
     /*
@@ -373,7 +523,7 @@ export default {
       }
     },
     /*
-    * 设置截图框的尺寸、位置
+    * 计算截图框的尺寸、位置
     */
     setClipBoxSize () {
       let scale = this.fixedNumber[0] / this.fixedNumber[1]
@@ -389,6 +539,9 @@ export default {
       extend(this.boxSize, size)
       this.clipBoxStyle()
     },
+    /*
+    * 设置截图框尺寸、位置、缩放
+    */
     clipBoxStyle () {
       this.$nextTick(() => {
         this.setElementStyle(this.$refs.clipBox, this.boxSize)

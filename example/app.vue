@@ -47,7 +47,7 @@ export default {
         fixedNumber: [1, 2],
         theme: 'circle'
       },
-      accept: 'image/png, image/jpeg, image/gif'
+      accept: 'image/png, image/jpeg, image/jpg, image/gif'
     }
   },
   methods: {
@@ -92,7 +92,7 @@ th, td, img, div, header, footer, nav {
   -webkit-font-smoothing: antialiased;
 }
 .avatar {
-  width: 60px;
-  height: 60px;
+  width: 300px;
+  height: 300px;
 }
 </style>
