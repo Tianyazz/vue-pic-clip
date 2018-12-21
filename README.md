@@ -1,21 +1,21 @@
-## vue-img-clip
+## vue-pic-clip
 ### 一个简单的移动端裁剪图片上传插件
 
-[预览demo](https://skinsty.github.io/vue-img-clip/docs/#/).
+[预览demo](https://skinsty.github.io/vue-pic-clip/docs/#/).
 
 ```markdown
 
 ### 安装 Install
-npm install vue-img-clip -D
+npm install vue-pic-clip -D
 
 // 组件内使用
-import { VueClip }  from 'vue-img-clip'
+import { VueClip }  from 'vue-pic-clip'
 components: {
   VueClip,
 },
 
 // main.js里面使用
-import VueClip from 'vue-img-clip'
+import VueClip from 'vue-pic-clip'
 
 Vue.use(VueClip)
 

@@ -11,8 +11,8 @@ module.exports = {
   },
   output: {
     path: path.resolve(__dirname, './dist'),
-    filename: 'vue-img-clip.min.js',
-    library: 'Vue-img-clip',
+    filename: 'vue-pic-clip.min.js',
+    library: 'Vue-pic-clip',
     libraryTarget: 'umd',
     umdNamedDefine: true
   },
