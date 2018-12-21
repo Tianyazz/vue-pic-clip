@@ -1,8 +1,8 @@
 <template>
   <div :class="['clip', theme]">
     <div class="icon">
-      <i></i>
-      <p><slot></slot></p>
+      <i v-show="this.imgUrl === ''"></i>
+      <p v-show="this.imgUrl === ''"><slot></slot></p>
     </div>
     <div class="picture" v-if="this.imgUrl !== ''">
       <img :src="imgUrl">
