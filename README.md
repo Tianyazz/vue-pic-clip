@@ -1,8 +1,6 @@
 ## vue-img-clip
 ### 一个简单的移动端裁剪图片上传插件
 
-<p><a href="https://skinsty.github.io/vue-img-clip/docs/#/">预览demo</a></p>
-
 [预览demo](https://skinsty.github.io/vue-img-clip/docs/#/).
 
 ```markdown
@@ -21,23 +19,17 @@ import VueImgClip from 'vue-img-clip'
 
 Vue.use(VueImgClip)
 
-**Bold** and _Italic_ and `Code` text
-
-[Link](url) and ![Image](src)
 ```
+```markdown
 <vue-clip
   :img=""
   :autoClip="option.autoClip"
   :outputSize="option.outputSize"
   @finish="finish"
 >上传头像</vue-clip>
-```markdown
-
-[Link](url) and ![Image](src)
-```
-
 
 ```
+
 *****
 ## 2018-10-12 更新1.0.1版本
 ### vuend 组件
