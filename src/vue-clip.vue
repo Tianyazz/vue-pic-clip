@@ -1,5 +1,5 @@
 <template>
-  <div :class="['scropper', theme]">
+  <div :class="['clip', theme]">
     <div class="icon">
       <i></i>
       <p><slot></slot></p>
@@ -18,24 +18,53 @@
         v-show="showPopup"
       >
         <img :src="clipImg" alt="" ref="image">
-        <div class="popup-move" v-if="autoClip"
+        <div class="popup-move"
+          @mousedown="startMove"
           @touchstart.prevent="startMove"
+          v-if="autoClip"
         ></div>
         <div class="clip-box" v-if="autoClip" ref="clipBox">
           <span class="clip-view">
             <img :src="clipImg" alt="" ref="clipImage">
           </span>
-          <span class="clip-move" @touchstart.prevent="clipMove"></span>
+          <span class="clip-move"
+            @mousedown="clipMove"
+            @touchstart.prevent="clipMove"
+          ></span>
           <span class="clip-info" v-text="clipSizeValue"></span>
           <span v-if="!fixedBox">
-            <i class="clip-line line-t" @touchstart.prevent="changeClipSize($event, false, true, 0, 1)"></i>
-            <i class="clip-line line-r" @touchstart.prevent="changeClipSize($event, true, false, 2, 0)"></i>
-            <i class="clip-line line-b" @touchstart.prevent="changeClipSize($event, false, true, 0, 2)"></i>
-            <i class="clip-line line-l" @touchstart.prevent="changeClipSize($event, true, false, 1, 0)"></i>
-            <i class="clip-point point-tr" @touchstart.prevent="changeClipSize($event, true, true, 2, 1)"></i>
-            <i class="clip-point point-br" @touchstart.prevent="changeClipSize($event, true, true, 2, 2)"></i>
-            <i class="clip-point point-bl" @touchstart.prevent="changeClipSize($event, true, true, 1, 2)"></i>
-            <i class="clip-point point-tl" @touchstart.prevent="changeClipSize($event, true, true, 1, 1)"></i>
+            <i class="clip-line line-t"
+              @mousedown="changeClipSize($event, false, true, 0, 1)"
+              @touchstart.prevent="changeClipSize($event, false, true, 0, 1)"
+            ></i>
+            <i class="clip-line line-r"
+              @mousedown="changeClipSize($event, true, false, 2, 0)"
+              @touchstart.prevent="changeClipSize($event, true, false, 2, 0)"
+            ></i>
+            <i class="clip-line line-b"
+              @mousedown="changeClipSize($event, false, true, 0, 2)"
+              @touchstart.prevent="changeClipSize($event, false, true, 0, 2)"
+            ></i>
+            <i class="clip-line line-l"
+              @mousedown="changeClipSize($event, true, false, 1, 0)"
+              @touchstart.prevent="changeClipSize($event, true, false, 1, 0)"
+            ></i>
+            <i class="clip-point point-tr"
+              @mousedown="changeClipSize($event, true, true, 2, 1)"
+              @touchstart.prevent="changeClipSize($event, true, true, 2, 1)"
+            ></i>
+            <i class="clip-point point-br"
+              @mousedown="changeClipSize($event, true, true, 2, 2)"
+              @touchstart.prevent="changeClipSize($event, true, true, 2, 2)"
+            ></i>
+            <i class="clip-point point-bl"
+              @mousedown="changeClipSize($event, true, true, 1, 2)"
+              @touchstart.prevent="changeClipSize($event, true, true, 1, 2)"
+            ></i>
+            <i class="clip-point point-tl"
+              @mousedown="changeClipSize($event, true, true, 1, 1)"
+              @touchstart.prevent="changeClipSize($event, true, true, 1, 1)"
+            ></i>
           </span>
         </div>
         <div class="range" v-if="autoClip">
@@ -63,12 +92,12 @@ const extend = (target, source) => {
   return target
 }
 export default {
-  name: 'ClipPicture',
+  name: 'VueClip',
   data () {
     return {
-      screenWidth: window.screen.width,
-      screenHeight: window.screen.height - 48,
-      imgUrl: '', // 上传图片预览地址
+      screenWidth: document.documentElement.clientWidth,
+      screenHeight: document.documentElement.clientHeight - 48,
+      imgUrl: this.img, // 上传图片预览
       imgName: '', // 上传图片的名称
       image: '', // 图片对象
       clipImg: '', // 裁剪后的图片
@@ -122,7 +151,19 @@ export default {
       type: Number,
       default: 0
     },
-    fixed: { // 是否开启固定宽高比。开启宽高比，若设置的宽高比例与宽高比不匹配，则按照宽高比计算高度
+    canMove: { // 上传图片能否拖动
+      type: Boolean,
+      default: true
+    },
+    canMoveBox: { // 截图框能否拖动
+      type: Boolean,
+      default: true
+    },
+    dataUrlType: { // 输出图片数据的类型，默认Bolb
+      type: String,
+      default: 'blob'
+    },
+    fixed: { // 截图框是否开启固定宽高比。开启宽高比，若设置的宽高比例与宽高比不匹配，则按照宽高比计算高度
       type: Boolean,
       default: false
     },
@@ -136,17 +177,21 @@ export default {
       type: Boolean,
       default: false
     },
-    canMove: { // 上传图片能否拖动
-      type: Boolean,
-      default: true
-    },
     img: {
       type: [String, Blob, null, File],
       default: ''
     },
-    dataUrlType: { // 输出图片地址的类型，默认Bolb
-      type: String,
-      default: 'blob'
+    isOriginalImg: { // 是否上传原图(启用裁剪时，上传原图无效)
+      type: Boolean,
+      default: false
+    },
+    maxWidth: { // 生成图片的最大宽度（启用裁剪或上传原图时最大宽度无效）
+      type: Number,
+      default: 600
+    },
+    maxHeight: { // 生成图片的最大高度（启用裁剪或上传原图时最大高度无效）
+      type: Number,
+      default: 600
     },
     outputSize: { // 输出图片压缩比
       type: Number,
@@ -159,14 +204,6 @@ export default {
     theme: { // 样式风格
       type: String,
       default: 'rect'
-    },
-    maxWidth: { // 生成图片的最大宽度
-      type: Number,
-      default: 600
-    },
-    maxHeight: { // 生成图片的最大高度
-      type: Number,
-      default: 600
     }
   },
   computed: {
@@ -183,7 +220,71 @@ export default {
     }
   },
   methods: {
-    // 获取上传图片
+    /*
+    * 将File类型文件转变为dataURL字符串
+    * @param: [file] [file类型文件]
+    * @param: [fn] [回调函数，包含一个dataURL类型的参数]
+    */
+    filetoDataURL (file, fn) {
+      let reader = new FileReader()
+      reader.onload = function (e) {
+        fn(e.target.result)
+      }
+      reader.readAsDataURL(file)
+    },
+    /*
+    * 将一串dataURL转变为Image类型文件
+    * @param: [dataUrl] [dataURL字符串]
+    */
+    dataURLtoImage (dataUrl) {
+      return new Promise(resolve => {
+        let img = new Image()
+        img.onload = () => {
+          resolve(img)
+        }
+        img.src = dataUrl
+      })
+    },
+    /*
+    * 将Canvas类型对象转换成Blob类型对象
+    * @param: [canvas] [Canvas类型对象]
+    * @param: [fn] [回调函数，包含一个Blob对象]
+    */
+    canvasResizetoFile (canvas, fn) {
+      canvas.toBlob((blob) => {
+        fn(blob)
+      }, `image/${this.outputType}`, this.outputSize)
+    },
+    /*
+    * 将Canvas对象转换成dataURL字符串
+    * @param: [canvas] [Canvas类型对象]
+    */
+    canvasResizetoDataURL (canvas) {
+      return canvas.toDataURL(`image/${this.outputType}`, this.outputSize)
+    },
+    /*
+    * 将Image类型文件转换为Canvas类型对象
+    * @param: [img] [图片]
+    * @param: [sx] [开始剪切的x坐标位置]
+    * @param: [sy] [开始剪切的y坐标位置]
+    * @param: [imgWidth] [被裁减的图片宽度]
+    * @param: [imgHeight] [被裁剪的图片高度]
+    * @param: [clipWidth] [剪切图像的宽度，不传默认img宽度]
+    * @param: [clipHeight] [剪切图像的高度，不传默认img高度]
+    */
+    imagetoCanvas (img, sx, sy, imgWidth, imgHeight, clipWidth, clipHeight) {
+      let canvas = document.createElement('canvas')
+      let ctx = canvas.getContext('2d')
+      let cw = clipWidth ? clipWidth : img.width
+      let ch = clipHeight ? clipHeight : img.height
+      canvas.width = cw
+      canvas.height = ch
+      ctx.drawImage(img, sx, sy, imgWidth, imgHeight, 0, 0, cw, ch)
+      return canvas
+    },
+    /*
+    * 获取上传图片
+    */
     getImg (e) {
       let files = e.target.files || e.dataTransfer.files
       if (files.length === 0) {
@@ -230,7 +331,7 @@ export default {
     },
     /* 
     * 根据exif信息，判断图片是否需要旋转，旋转图片
-    * @param: [dataUrl] [图片的base64地址]
+    * @param: [dataUrl] [图片的base64数据]
     */
     isRotate (dataUrl) {
       return new Promise(reslove => {
@@ -276,48 +377,6 @@ export default {
         }
       })
     },
-    /*
-    * 将File类型文件转变为dataURL字符串
-    * @param: [file] [file类型文件]
-    * @param: [fn] [回调函数，包含一个dataURL类型的参数]
-    */
-    filetoDataURL (file, fn) {
-      let reader = new FileReader()
-      reader.onload = function (e) {
-        fn(e.target.result)
-      }
-      reader.readAsDataURL(file)
-    },
-    /*
-    * 将一串dataURL转变为Image类型文件
-    * @param: [dataUrl] [dataURL字符串]
-    */
-    dataURLtoImage (dataUrl) {
-      return new Promise(resolve => {
-        let img = new Image()
-        img.onload = () => {
-          resolve(img)
-        }
-        img.src = dataUrl
-      })
-    },
-    /*
-    * 将Canvas类型对象转换成Blob类型对象
-    * @param: [canvas] [Canvas类型对象]
-    * @param: [fn] [回调函数，包含一个Blob对象]
-    */
-    canvasResizetoFile (canvas, fn) {
-      canvas.toBlob((blob) => {
-        fn(blob)
-      }, `image/${this.outputType}`, this.outputSize)
-    },
-    /*
-    * 将Canvas对象转换成dataURL字符串
-    * @param: [canvas] [Canvas类型对象]
-    */
-    canvasResizetoDataURL (canvas) {
-      return canvas.toDataURL(`image/${this.outputType}`, this.outputSize)
-    },
     /* 获取图片exif要将图片转换成ArrayBuffer对象， base64转换ArrayBuffer对象 */
     base64ToArrayBuffer (dataUrl) {
       dataUrl = dataUrl.replace(/^data\:([^\;]+)\;base64,/gmi, '')
@@ -344,7 +403,7 @@ export default {
     },
     /*
     * 获取jpg图片的exif角度（在ios体现最明显）
-    * @param: [dataUrl] [图片的base64地址]
+    * @param: [dataUrl] [图片的base64数据]
     */
     getOrientation (dataUrl) {
       let arrayBuffer = this.base64ToArrayBuffer(dataUrl)
@@ -457,7 +516,8 @@ export default {
         h: height,
         s: 1
       }
-      if (imgInfo.w < maxWidth && imgInfo.h < maxHeight) {
+      if ((imgInfo.w < maxWidth && imgInfo.h < maxHeight) || this.isOriginalImg) {
+        console.log(this.isOriginalImg)
         return imgInfo
       }
       let scale = parseFloat(imgInfo.w / imgInfo.h) // 计算宽高比
@@ -488,26 +548,6 @@ export default {
         h: maxHeight,
         s: maxWidth / width
       }
-    },
-    /*
-    * 将Image类型文件转换为Canvas类型对象
-    * @param: [img] [图片]
-    * @param: [sx] [开始剪切的x坐标位置]
-    * @param: [sy] [开始剪切的y坐标位置]
-    * @param: [imgWidth] [被裁减的图片宽度]
-    * @param: [imgHeight] [被裁剪的图片高度]
-    * @param: [clipWidth] [剪切图像的宽度，不传默认img宽度]
-    * @param: [clipHeight] [剪切图像的高度，不传默认img高度]
-    */
-    imagetoCanvas (img, sx, sy, imgWidth, imgHeight, clipWidth, clipHeight) {
-      let canvas = document.createElement('canvas')
-      let ctx = canvas.getContext('2d')
-      let cw = clipWidth ? clipWidth : img.width
-      let ch = clipHeight ? clipHeight : img.height
-      canvas.width = cw
-      canvas.height = ch
-      ctx.drawImage(img, sx, sy, imgWidth, imgHeight, 0, 0, cw, ch)
-      return canvas
     },
     /*
     * 生成截图弹出层
@@ -578,18 +618,21 @@ export default {
     },
     /* 开始移动图片 */
     startMove (e) {
+      e.preventDefault()
       if (!this.canMove) {
         return false
       }
-      let touch = e.touches[0]
+      let touch = e.touches ? e.touches[0] : e
       this.moveX = this.imgSize.x - touch.clientX
       this.moveY = this.imgSize.y - touch.clientY
+      window.addEventListener('mousemove', this.moveImg)
+      window.addEventListener('mouseup', this.leaveImg)
       window.addEventListener('touchmove', this.moveImg)
       window.addEventListener('touchend', this.leaveImg)
     },
     /* 移动图片 */
     moveImg (e) {
-      let touch = e.touches[0]
+      let touch = e.touches ? e.touches[0] : e
       let nowX = touch.clientX
       let nowY = touch.clientY
       let changeX = nowX + this.moveX
@@ -603,22 +646,30 @@ export default {
     },
     /* 移动图片结束 */
     leaveImg (e) {
+      window.removeEventListener('mousemove', this.moveImg)
+      window.removeEventListener('mouseup', this.leaveImg)
       window.removeEventListener('touchmove', this.moveImg)
       window.removeEventListener('touchend', this.leaveImg)
     },
     /* 裁剪框移动 */
     clipMove (e) {
-      let touch = e.touches[0]
+      e.preventDefault()
+      if (!this.canMoveBox) {
+        return false
+      }
+      let touch = e.touches ? e.touches[0] : e
       this.clipMoveX = this.boxSize.x - touch.clientX
       this.clipMoveY = this.boxSize.y - touch.clientY
       this.clipWidth = this.boxSize.w
       this.clipHeight = this.boxSize.h
+      window.addEventListener('mousemove', this.moveClip)
+      window.addEventListener('mouseup', this.leaveClip)
       window.addEventListener('touchmove', this.moveClip)
       window.addEventListener('touchend', this.leaveClip)
     },
     /* 移动截图框 */
     moveClip (e) {
-      let touch = e.touches[0]
+      let touch = e.touches ? e.touches[0] : e
       let nowX = touch.clientX
       let nowY = touch.clientY
       let changeX = nowX + this.clipMoveX
@@ -642,6 +693,8 @@ export default {
     },
     /* 截图框移动结束 */
     leaveClip () {
+      window.removeEventListener('mousemove', this.moveClip)
+      window.removeEventListener('mouseup', this.leaveClip)
       window.removeEventListener('touchmove', this.moveClip)
       window.removeEventListener('touchend', this.leaveClip)
     },
@@ -653,9 +706,12 @@ export default {
     * @Param: [typeY] [Number] [0:不变、1:截图框上边变化、2：截图框下边变化]
     */
     changeClipSize (e, x, y, typeX, typeY) {
+      e.preventDefault()
+      window.addEventListener('mousemove', this.changeClipNow)
+      window.addEventListener('mouseup', this.changeClipEnd)
       window.addEventListener('touchmove', this.changeClipNow)
       window.addEventListener('touchend', this.changeClipEnd)
-      let touch = e.touches[0]
+      let touch = e.touches ? e.touches[0] : e
       this.canChangeX = x
       this.canChangeY = y
       this.changeClipTypeX = typeX
@@ -674,7 +730,7 @@ export default {
     },
     /* 正在改变截图框大小 */
     changeClipNow (e) {
-      let touch = e.touches[0]
+      let touch = e.touches ? e.touches[0] : e
       let changeX = parseInt(touch.clientX - this.clipMoveX)
       let changeY = parseInt(touch.clientY - this.clipMoveY)
       let maxW = this.screenWidth // 容器的宽度
@@ -749,6 +805,8 @@ export default {
     },
     /* 结束改变截图框大小 */
     changeClipEnd () {
+      window.removeEventListener('mousemove', this.changeClipNow)
+      window.removeEventListener('mouseup', this.changeClipEnd)
       window.removeEventListener('touchmove', this.changeClipNow)
       window.removeEventListener('touchend', this.changeClipEnd)
     }
@@ -765,13 +823,13 @@ export default {
   url('//at.alicdn.com/t/font_953300_clegio409me.ttf') format('truetype'),
   url('//at.alicdn.com/t/font_953300_clegio409me.svg#iconfont') format('svg');
 }
-.scropper {
+.clip {
   position: relative;
   width: 100%;
   height: 100%;
 }
-.scropper .icon,
-.scropper > input {
+.clip .icon,
+.clip > input {
   position: absolute;
   top: 0;
   left: 0;
@@ -779,7 +837,7 @@ export default {
   bottom: 0;
   z-index: 10;
 }
-.scropper .picture {
+.clip .picture {
   display: -webkit-flex;
   display: flex;
   -webkit-align-items: center;
@@ -793,20 +851,20 @@ export default {
   height: 100%;
   z-index: 20;
 }
-.scropper .picture img {
+.clip .picture img {
   max-width: 100%;
   max-height: 100%;
 }
-.scropper > input {
+.clip > input {
   width: 100%;
   opacity: 0;
   z-index: 30;
 }
-.scropper .icon {
+.clip .icon {
   text-align: center;
   border: 2px solid rgba(0, 0, 0, .1);
 }
-.scropper .icon i {
+.clip .icon i {
   display: -webkit-flex;
   display: flex;
   -webkit-align-items: center;
@@ -815,7 +873,7 @@ export default {
   justify-content: center;
   height: 100%;
 }
-.scropper .icon i:before {
+.clip .icon i:before {
   content: "\e641";
   display: block;
   font-size: 30px;
@@ -823,7 +881,7 @@ export default {
   line-height: 100%;
   color: rgba(0, 0, 0, .1);
 }
-.scropper .msg {
+.clip .msg {
   position: fixed;
   top: 50%;
   left: 50%;
@@ -838,14 +896,14 @@ export default {
   background: rgba(0, 0, 0, .7);
 }
 .rect .icon i {
-  height: 90%;
+  height: 80%;
 }
 .rect .icon i:before {
   content: "\e641";
   line-height: 42px;
 }
 .rect p {
-  margin-top: -12px;
+  margin-top: -8px;
   font-size: 12px;
   color: #666;
   text-align: center;
@@ -894,6 +952,7 @@ export default {
   width: 40%;
   height: 38px;
   margin: 0 5%;
+  border: 0;
   border-radius: 5px;
   color: #fff;
   background: rgba(50, 135, 255, .7);
@@ -916,8 +975,6 @@ export default {
 }
 .clip-popup .clip-box {
   z-index: 20;
-  width: 300px;
-  height: 300px;
 }
 .clip-popup .clip-view {
   display: block;
@@ -949,28 +1006,28 @@ export default {
   z-index: 25;
 }
 .clip-popup .line-t {
-  top: -3px;
-  height: 6px;
+  top: -5px;
+  height: 10px;
 }
 .clip-popup .line-r {
   top: 0;
-  right: -3px;
-  width: 6px;
+  right: -5px;
+  width: 10px;
 }
 .clip-popup .line-b {
-  bottom: -3px;
-  height: 6px;
+  bottom: -5px;
+  height: 10px;
 }
 .clip-popup .line-l {
   top: 0;
-  left: -3px;
-  width: 6px;
+  left: -5px;
+  width: 10px;
 }
 .clip-popup .clip-point {
   position: absolute;
   display: block;
-  width: 12px;
-  height: 12px;
+  width: 16px;
+  height: 16px;
   z-index: 26;
 }
 .clip-popup .point-tr {
@@ -1020,14 +1077,14 @@ export default {
   margin: 0 20px;
   height: 3px;
   border-radius: 2px;
-  background: rgba(0, 0, 0, .6);
+  background: rgba(255, 255, 255, .8);
   -webkit-appearance: none;
 }
 .clip-popup .range input[type=range]::-webkit-slider-thumb {
   width: 16px;
   height: 16px;
   border-radius: 50%;
-  /* border: 1px solid rgba(50, 135, 255, 1.0); */
+  border: none;
   box-shadow: 0px 0px 3px rgba(255, 255, 255, 1.0);
   background: rgba(50, 135, 255, 1.0);
   -webkit-appearance: none;

@@ -1,7 +1,7 @@
-import VueScropper from './vue-scropper'
+import VueClip from './vue-clip'
 
 const install = function(Vue) {
-  Vue.component('VueScropper', VueScropper)
+  Vue.component(VueClip.name, VueClip)
 }
 
 if (typeof window !== 'undefiend' && window.Vue) {
@@ -10,5 +10,5 @@ if (typeof window !== 'undefiend' && window.Vue) {
 
 export default {
   install,
-  VueScropper
+  VueClip
 }

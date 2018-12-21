@@ -1,21 +1,20 @@
 'use strict'
 const path = require('path')
-const HtmlWebpackPlugin = require('html-webpack-plugin')
 const CleanWebpackPlugin = require('clean-webpack-plugin')
 const VueLoaderPlugin = require('vue-loader/lib/plugin')
 
 module.exports = {
   mode: 'production',
-  entry: './example/main.js',
+  entry: './src/index.js',
   performance: {
     hints: false
   },
-  devServer: {
-    contentBase: './docs'
-  },
   output: {
-    filename: '[name].bundle.js',
-    path: path.resolve(__dirname, 'docs')
+    path: path.resolve(__dirname, './dist'),
+    filename: 'vue-img-clip.min.js',
+    library: 'Vue-img-clip',
+    libraryTarget: 'umd',
+    umdNamedDefine: true
   },
   resolve: {
     extensions: ['.js', '.vue'],
@@ -37,14 +36,6 @@ module.exports = {
         }
       },
       {
-        test: /\.(png|jpe?g|gif|svg)(\?.*)?$/,
-        loader: 'url-loader',
-        options: {
-          limit: 10000,
-          name: path.posix.join('img/[name].[hash:7].[ext]')
-        }
-      },
-      {
         test: /\.css$/,
         use: [
           'style-loader',
@@ -58,11 +49,7 @@ module.exports = {
     ]
   },
   plugins: [
-    new CleanWebpackPlugin(['docs']),
-    new HtmlWebpackPlugin({
-      template: 'index.html',
-      inject: true, // js插入位置
-    }),
+    new CleanWebpackPlugin(['dist']),
     new VueLoaderPlugin()
   ]
 }
