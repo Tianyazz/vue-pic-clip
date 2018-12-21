@@ -31,8 +31,7 @@ Vue.use(VueImgClip)
 ```
 
 *****
-## 2018-10-12 更新1.0.1版本
-### vuend 组件
+### 配置参数
 
 名称|功能|默认值|可选值
 ---|:--:|:--:|---:
@@ -56,8 +55,9 @@ theme|样式风格|rect|rect||circle
 finish|完成操作事件||回调函数
 ****
 
-### 主要研究[vue-cropper](https://github.com/xyxiao001/vue-cropper)的源码开发。一直使用这个插件做项目，最近比较闲，就撸了一个更简单的适合我自己用的插件。没有大量真机测试过，有什么问题，欢迎大家提Issues给我。
+主要研究[vue-cropper](https://github.com/xyxiao001/vue-cropper)的源码开发学习。一直使用这个插件做项目，最近比较闲，就撸了一个更简单的适合我自己用的插件。没有大量真机测试过，有什么问题，欢迎大家提Issues给我。
+
 ### Thanks to
 - [JS中图片压缩的方法小结](https://www.jb51.net/article/128189.htm)
-- [xyxiao001/vue-cropper](https://github.com/xyxiao001/vue-cropper)
+- [vue-cropper](https://github.com/xyxiao001/vue-cropper)
 - [js获取图片EXIF, 解决图片旋转](https://www.cnblogs.com/suyuanli/p/8168407.html)
