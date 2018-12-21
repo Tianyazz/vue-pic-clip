@@ -1,10 +1,10 @@
 <template>
   <div :class="['clip', theme]">
     <div class="icon">
-      <i v-show="this.imgUrl === ''"></i>
-      <p v-show="this.imgUrl === ''"><slot></slot></p>
+      <i v-show="imgUrl === ''"></i>
+      <p v-show="imgUrl === ''"><slot></slot></p>
     </div>
-    <div class="picture" v-if="this.imgUrl !== ''">
+    <div class="picture" v-if="imgUrl !== ''">
       <img :src="imgUrl">
     </div>
     <input type="file"
