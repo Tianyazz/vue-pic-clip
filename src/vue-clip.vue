@@ -490,12 +490,12 @@ export default {
       if (this.dataUrlType === 'blob') {
         this.canvasResizetoFile(canvas, (blob) => {
           this.imgUrl = URL.createObjectURL(blob)
-          this.$emit('uploadFinish', this.imgName, blob)
+          this.$emit('finish', this.imgName, blob)
         })
       } else {
         let url = this.canvasResizetoDataURL(canvas)
         this.imgUrl = url
-        this.$emit('uploadFinish', this.imgName, url)
+        this.$emit('finish', this.imgName, url)
       }
       this.$refs.uploadImg.value = ''
       this.showPopup = false

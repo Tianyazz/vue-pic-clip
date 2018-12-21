@@ -77,7 +77,7 @@ export default {
         :fixed="option.fixed"
         :outputSize="option.outputSize"
         :theme="option.theme"
-        @uploadFinish="uploadFinish"
+        @finish="finish"
       >上传头像</vue-clip>`
     this.code1 = `
       data () {
@@ -96,7 +96,7 @@ export default {
         }
       },
       methods: {
-        uploadFinish (name, url) { // 完成上传图片，返回图片名称、数据
+        finish (name, url) { // 完成上传图片，返回图片名称、数据
           console.log('data', url)
           let formData = new FormData()
           formData.append('files', url)
@@ -113,7 +113,7 @@ export default {
         :fixed="option.fixed"
         :outputSize="option.outputSize"
         :theme="option.theme"
-        @uploadFinish="uploadFinish"
+        @finish="finish"
       >上传头像</vue-clip>`
     this.code5 = `
       data () {
@@ -133,7 +133,7 @@ export default {
         }
       },
       methods: {
-        uploadFinish (name, url) { // 完成上传图片，返回图片名称、数据
+        finish (name, url) { // 完成上传图片，返回图片名称、数据
           console.log('data', url)
           let formData = new FormData()
           formData.append('files', url)
@@ -147,7 +147,7 @@ export default {
         :fixed="option1.fixed"
         :fixedNumber="option1.fixedNumber"
         :theme="option1.theme"
-        @uploadFinish="uploadFinish"
+        @finish="finish"
       ></vue-clip>`
     this.code3 = `
       data () {
@@ -166,7 +166,7 @@ export default {
         }
       },
       methods: {
-        uploadFinish (name, url) {
+        finish (name, url) {
           console.log('data', url)
         }
       }`

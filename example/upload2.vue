@@ -12,7 +12,7 @@
           :maxHeight="option.maxHeight"
           :outputType="option.outputType"
           :theme="option.theme"
-          @uploadFinish="uploadFinish"
+          @finish="finish"
         ></vue-clip>
       </div>
     </div>
@@ -37,7 +37,7 @@ export default {
     }
   },
   methods: {
-    uploadFinish (name, url) {
+    finish (name, url) {
       console.log('data', url)
       let formData = new FormData()
     }
