@@ -9,15 +9,15 @@
 npm install vue-img-clip -D
 
 // 组件内使用
-import VueImgClip  from 'vue-img-clip'
+import { VueClip }  from 'vue-img-clip'
 components: {
-  VueImgClip,
+  VueClip,
 },
 
 // main.js里面使用
-import VueImgClip from 'vue-img-clip'
+import VueClip from 'vue-img-clip'
 
-Vue.use(VueImgClip)
+Vue.use(VueClip)
 
 ```
 ```markdown

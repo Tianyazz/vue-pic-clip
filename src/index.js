@@ -7,8 +7,10 @@ const install = function(Vue) {
 if (typeof window !== 'undefiend' && window.Vue) {
   install(window.Vue)
 }
+export { VueClip }
 
 export default {
   install,
-  VueClip
+  VueClip,
+  vueClip: VueClip
 }
