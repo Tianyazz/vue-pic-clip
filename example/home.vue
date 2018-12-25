@@ -1,7 +1,7 @@
 <template>
   <div class="vue-clip-example">
     <h3>vue-pic-clip</h3>
-    <h4>github: <a href="https://github.com/SkinsTY/vue-pic-clip">https://github.com/SkinsTY/vue-pic-clip</a></h4>
+    <h4>github: <a href="https://github.com/Tianyazz/vue-pic-clip">https://github.com/Tianyazz/vue-pic-clip</a></h4>
     <div class="content">
       <div class="fl">
         <iframe src="./#/upload" frameborder="0">

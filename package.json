@@ -1,6 +1,6 @@
 {
   "name": "vue-pic-clip",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "a simple upload cropped image vue plugin",
   "author": "",
   "private": false,
@@ -13,7 +13,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git@github.com:SkinsTY/vue-pic-clip.git"
+    "url": "git@github.com:Tianyazz/vue-pic-clip.git"
   },
   "files": [
     "dist",

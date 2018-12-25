@@ -1,7 +1,7 @@
 ## vue-pic-clip
 ### 一个简单的移动端裁剪图片上传插件
 
-[预览demo](https://skinsty.github.io/vue-pic-clip/docs/#/).
+[预览demo](https://tianyazz.github.io/vue-pic-clip/docs/#/).
 
 ```markdown
 
